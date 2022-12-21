@@ -10,4 +10,5 @@ kafka-client:
     - 222.222.222.222:9092
     - 333.333.333.333:9092
   groud-id: log-group
-  topic: log
+  topics:
+    - log

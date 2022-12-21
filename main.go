@@ -14,16 +14,10 @@ func main() {
 	var config types.Config
 	config.LoadConfig(SERVER_CONFIG_PATH)
 
-	// db setting
 	DBInit(config)
 
-	// kafka-client setting
-	//var kafkaClient *KafkaClient
 	kafkaClient := KafkaClient{}
 
 	kafkaClient.Init(config)
 	kafkaClient.Run()
-
-	//err =
-
 }

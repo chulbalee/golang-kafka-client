@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"golang-kafka-client/types"
 	"os"
@@ -14,11 +15,17 @@ const (
 )
 
 type KafkaClient struct {
-	BootstrapServers string `yaml:"bootstrap-servers"`
-	GroupId          string `yaml:"group-id"`
-	Topic            string `yaml:"topic"`
+	BootstrapServers string
+	GroupId          string
+	Topics           []string
 
 	consumer *kafka.Consumer
+}
+
+type logMsg struct {
+	Tx  string `json:"tx"`
+	Id  string `json:"id"`
+	Msg string `json:"msg"`
 }
 
 func (kafkaClient *KafkaClient) Init(config types.Config) *KafkaClient {
@@ -28,7 +35,7 @@ func (kafkaClient *KafkaClient) Init(config types.Config) *KafkaClient {
 
 	kafkaClient.BootstrapServers = strings.Join(config.KafkaClientConfig.BootstrapServers, ",")
 	kafkaClient.GroupId = config.KafkaClientConfig.GroupId
-	kafkaClient.Topic = config.KafkaClientConfig.Topic
+	kafkaClient.Topics = append(kafkaClient.Topics, config.KafkaClientConfig.Topics)
 
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        kafkaClient.BootstrapServers,
@@ -49,19 +56,26 @@ func (kafkaClient *KafkaClient) Init(config types.Config) *KafkaClient {
 }
 
 func (kafkaClient *KafkaClient) Run() {
-	_ = kafkaClient.consumer.Subscribe(kafkaClient.Topic, nil)
+	_ = kafkaClient.consumer.SubscribeTopics(kafkaClient.Topics, nil)
 
 	run := true
 	msg_count := 0
-	for run == true {
+	for run {
 		ev := kafkaClient.consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
-			msg_count += 1
+			msg_count = (msg_count + 1) % 100
 			if msg_count%MIN_COMMIT_COUNT == 0 {
 				kafkaClient.consumer.Commit()
 			}
-			fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+
+			switch *e.TopicPartition.Topic {
+			case "log":
+				go logConsume(e.Value)
+
+			default:
+				fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+			}
 		case kafka.PartitionEOF:
 			fmt.Printf("%% Reached %v\n", e)
 		case kafka.Error:
@@ -71,4 +85,11 @@ func (kafkaClient *KafkaClient) Run() {
 			fmt.Printf("Ignored %v\n", e)
 		}
 	}
+}
+
+func logConsume(str []byte) {
+	msg := logMsg{}
+	json.Unmarshal(str, &msg)
+
+	// DB INSERT
 }
