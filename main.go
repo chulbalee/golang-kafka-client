@@ -1,7 +1,8 @@
 package main
 
 import (
-	"golang-kafka-client/types"
+	"golang-kafka-client/conf"
+	"golang-kafka-client/db"
 )
 
 const (
@@ -11,10 +12,11 @@ const (
 )
 
 func main() {
-	var config types.Config
+	var config conf.Config
 	config.LoadConfig(SERVER_CONFIG_PATH)
 
-	DBInit(config)
+	db := db.DB{}
+	db.Init(config)
 
 	kafkaClient := KafkaClient{}
 

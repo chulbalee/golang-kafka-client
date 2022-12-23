@@ -4,6 +4,7 @@ database:
   port: 3306
   user: adm
   password: adm
+  db: database
 kafka-client:
   bootstrap-servers:
     - 111.111.111.111:9092

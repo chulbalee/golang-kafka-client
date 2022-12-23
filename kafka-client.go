@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"golang-kafka-client/types"
+	"golang-kafka-client/conf"
 	"os"
 	"strings"
 
@@ -28,14 +28,14 @@ type logMsg struct {
 	Msg string `json:"msg"`
 }
 
-func (kafkaClient *KafkaClient) Init(config types.Config) *KafkaClient {
+func (kafkaClient *KafkaClient) Init(config conf.Config) {
 	fmt.Println(":::kafka Init")
-	fmt.Println(":::kafka bootstrap-servers ", strings.Join(config.KafkaClientConfig.BootstrapServers, ","))
-	fmt.Println(":::kafka GroupId ", config.KafkaClientConfig.GroupId)
+	fmt.Println(":::kafka bootstrap-servers ", strings.Join(config.KafkaClient.BootstrapServers, ","))
+	fmt.Println(":::kafka GroupId ", config.KafkaClient.GroupId)
 
-	kafkaClient.BootstrapServers = strings.Join(config.KafkaClientConfig.BootstrapServers, ",")
-	kafkaClient.GroupId = config.KafkaClientConfig.GroupId
-	kafkaClient.Topics = append(kafkaClient.Topics, config.KafkaClientConfig.Topics)
+	kafkaClient.BootstrapServers = strings.Join(config.KafkaClient.BootstrapServers, ",")
+	kafkaClient.GroupId = config.KafkaClient.GroupId
+	kafkaClient.Topics = append(kafkaClient.Topics, config.KafkaClient.Topics)
 
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        kafkaClient.BootstrapServers,
@@ -51,8 +51,6 @@ func (kafkaClient *KafkaClient) Init(config types.Config) *KafkaClient {
 	}
 
 	kafkaClient.consumer = consumer
-
-	return kafkaClient
 }
 
 func (kafkaClient *KafkaClient) Run() {
