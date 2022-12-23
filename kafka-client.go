@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang-kafka-client/conf"
+	"golang-kafka-client/db"
 	"os"
 	"strings"
 
@@ -20,15 +21,10 @@ type KafkaClient struct {
 	Topics           []string
 
 	consumer *kafka.Consumer
+	conn     *db.DB
 }
 
-type logMsg struct {
-	Tx  string `json:"tx"`
-	Id  string `json:"id"`
-	Msg string `json:"msg"`
-}
-
-func (kafkaClient *KafkaClient) Init(config conf.Config) {
+func (kafkaClient *KafkaClient) Init(config conf.Config, db *db.DB) {
 	fmt.Println(":::kafka Init")
 	fmt.Println(":::kafka bootstrap-servers ", strings.Join(config.KafkaClient.BootstrapServers, ","))
 	fmt.Println(":::kafka GroupId ", config.KafkaClient.GroupId)
@@ -51,6 +47,7 @@ func (kafkaClient *KafkaClient) Init(config conf.Config) {
 	}
 
 	kafkaClient.consumer = consumer
+	kafkaClient.conn = db
 }
 
 func (kafkaClient *KafkaClient) Run() {
@@ -69,7 +66,7 @@ func (kafkaClient *KafkaClient) Run() {
 
 			switch *e.TopicPartition.Topic {
 			case "log":
-				go logConsume(e.Value)
+				go kafkaClient.logConsume(e.Value)
 
 			default:
 				fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
@@ -85,9 +82,12 @@ func (kafkaClient *KafkaClient) Run() {
 	}
 }
 
-func logConsume(str []byte) {
-	msg := logMsg{}
+func (kafkaClient *KafkaClient) logConsume(str []byte) {
+	msg := db.Tb_co_log{}
 	json.Unmarshal(str, &msg)
 
 	// DB INSERT
+	tbCoLogDao := db.TbCoLogDao{Conn: kafkaClient.conn}
+
+	tbCoLogDao.Create(msg)
 }

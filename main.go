@@ -20,6 +20,6 @@ func main() {
 
 	kafkaClient := KafkaClient{}
 
-	kafkaClient.Init(config)
+	kafkaClient.Init(config, &db)
 	kafkaClient.Run()
 }

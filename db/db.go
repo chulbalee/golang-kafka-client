@@ -10,7 +10,7 @@ import (
 )
 
 type DB struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
 func (d *DB) Init(config conf.Config) {
@@ -37,5 +37,5 @@ func (d *DB) Init(config conf.Config) {
 	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	d.db = db
+	d.Db = db
 }

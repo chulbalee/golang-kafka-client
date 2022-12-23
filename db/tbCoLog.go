@@ -3,13 +3,12 @@ package db
 import "fmt"
 
 type TbCoLogDao struct {
-	table Tb_co_log
-	conn  *DB
+	Conn *DB
 }
 
-func (t TbCoLogDao) Create(data Tb_co_log) {
+func (t *TbCoLogDao) Create(data Tb_co_log) {
 
-	result := t.conn.db.Create(&data)
+	result := t.Conn.Db.Create(&data)
 
 	if result.Error != nil {
 		fmt.Println("TbCoLogDao did not insert")
