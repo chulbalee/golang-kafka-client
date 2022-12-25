@@ -18,8 +18,7 @@ func (d *DB) Init(config conf.Config) {
 	fmt.Println(":::db type ", config.Database.Type)
 	fmt.Println(":::db host ", config.Database.Host)
 
-	//dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn := fmt.Sprint("%s:%s@tcp(%s:%s)/$s?charset=utf8", config.Database.User, config.Database.Password, config.Database.Host, config.Database.Port, config.Database.DB)
+	dsn := fmt.Sprint(config.Database.User, ":", config.Database.Password, "@tcp(", config.Database.Host, ":", config.Database.Port, ")/", config.Database.DB, "?charset=utf8")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
