@@ -13,13 +13,14 @@ const (
 
 func main() {
 	var config conf.Config
+
 	config.LoadConfig(SERVER_CONFIG_PATH)
 
-	db := db.DB{}
-	db.Init(config)
+	database := db.DB{}
+	database.Init(config)
 
 	kafkaClient := KafkaClient{}
 
-	kafkaClient.Init(config, &db)
-	kafkaClient.Run()
+	kafkaClient.Init(config, &database)
+	go kafkaClient.Run()
 }

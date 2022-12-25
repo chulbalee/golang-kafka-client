@@ -31,7 +31,7 @@ func (kafkaClient *KafkaClient) Init(config conf.Config, db *db.DB) {
 
 	kafkaClient.BootstrapServers = strings.Join(config.KafkaClient.BootstrapServers, ",")
 	kafkaClient.GroupId = config.KafkaClient.GroupId
-	kafkaClient.Topics = append(kafkaClient.Topics, config.KafkaClient.Topics)
+	kafkaClient.Topics = config.KafkaClient.Topics
 
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        kafkaClient.BootstrapServers,

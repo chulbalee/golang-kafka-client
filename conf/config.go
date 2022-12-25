@@ -19,7 +19,7 @@ type Config struct {
 	KafkaClient struct {
 		BootstrapServers []string `yaml:"bootstrap-servers"`
 		GroupId          string   `yaml:"group-id"`
-		Topics           string   `yaml:"topics"`
+		Topics           []string `yaml:"topics"`
 	} `yaml:"kafka-client"`
 }
 
