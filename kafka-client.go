@@ -7,8 +7,10 @@ import (
 	"golang-kafka-client/db"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"gorm.io/gorm"
 )
 
 const (
@@ -21,10 +23,10 @@ type KafkaClient struct {
 	Topics           []string
 
 	consumer *kafka.Consumer
-	conn     *db.DB
+	conn     *gorm.DB
 }
 
-func (kafkaClient *KafkaClient) Init(config conf.Config, db *db.DB) {
+func (kafkaClient *KafkaClient) Init(config conf.Config, db *gorm.DB) {
 	fmt.Println(":::kafka Init")
 	fmt.Println(":::kafka bootstrap-servers ", strings.Join(config.KafkaClient.BootstrapServers, ","))
 	fmt.Println(":::kafka GroupId ", config.KafkaClient.GroupId)
@@ -51,12 +53,18 @@ func (kafkaClient *KafkaClient) Init(config conf.Config, db *db.DB) {
 }
 
 func (kafkaClient *KafkaClient) Run() {
-	_ = kafkaClient.consumer.SubscribeTopics(kafkaClient.Topics, nil)
+	fmt.Println("::: Kafka Topic Consume => ", kafkaClient.Topics)
+	err := kafkaClient.consumer.SubscribeTopics(kafkaClient.Topics, nil)
+
+	if err != nil {
+		panic(err)
+	}
 
 	run := true
 	msg_count := 0
 	for run {
 		ev := kafkaClient.consumer.Poll(100)
+
 		switch e := ev.(type) {
 		case *kafka.Message:
 			msg_count = (msg_count + 1) % 100
@@ -65,7 +73,7 @@ func (kafkaClient *KafkaClient) Run() {
 			}
 
 			switch *e.TopicPartition.Topic {
-			case "log":
+			case "TB_CO_LOG_HIST":
 				go kafkaClient.logConsume(e.Value)
 
 			default:
@@ -80,14 +88,20 @@ func (kafkaClient *KafkaClient) Run() {
 			fmt.Printf("Ignored %v\n", e)
 		}
 	}
+
+	kafkaClient.consumer.Close()
 }
 
 func (kafkaClient *KafkaClient) logConsume(str []byte) {
-	msg := db.Tb_co_log{}
+	fmt.Println("::: LOG CONSUMED")
+	var msg string
 	json.Unmarshal(str, &msg)
 
-	// DB INSERT
-	tbCoLogDao := db.TbCoLogDao{Conn: kafkaClient.conn}
+	entity := db.Tb_co_log{}
+	entity.BasDt = time.Now().Format("20060102")
+	entity.Msg = msg
 
-	tbCoLogDao.Create(msg)
+	fmt.Println("::: LOG CONSUMED : ", entity)
+	// DB INSERT
+	db.Create(entity)
 }

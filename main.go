@@ -16,11 +16,10 @@ func main() {
 
 	config.LoadConfig(SERVER_CONFIG_PATH)
 
-	database := db.DB{}
-	database.Init(config)
+	db.Init(config)
 
 	kafkaClient := KafkaClient{}
 
-	kafkaClient.Init(config, &database)
-	go kafkaClient.Run()
+	kafkaClient.Init(config, db.GetInstance())
+	kafkaClient.Run()
 }

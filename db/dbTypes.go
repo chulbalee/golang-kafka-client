@@ -1,11 +1,11 @@
 package db
 
 func (Tb_co_log) TableName() string {
-	return "tb_co_log"
+	return "TB_CO_LOG_HIST"
 }
 
 type Tb_co_log struct {
-	Tx  string `json:"tx"`
-	Id  int    `json:"id"`
-	Msg string `json:"msg"`
+	BasDt string `json:"basDt"`
+	Id    int    `json:"id"`
+	Msg   string `json:"msg"`
 }
