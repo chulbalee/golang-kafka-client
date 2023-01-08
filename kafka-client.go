@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"golang-kafka-client/conf"
 	"golang-kafka-client/db"
@@ -53,7 +52,6 @@ func (kafkaClient *KafkaClient) Init(config conf.Config, db *gorm.DB) {
 }
 
 func (kafkaClient *KafkaClient) Run() {
-	fmt.Println("::: Kafka Topic Consume => ", kafkaClient.Topics)
 	err := kafkaClient.consumer.SubscribeTopics(kafkaClient.Topics, nil)
 
 	if err != nil {
@@ -85,7 +83,7 @@ func (kafkaClient *KafkaClient) Run() {
 			fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
 			run = false
 		default:
-			fmt.Printf("Ignored %v\n", e)
+			//fmt.Printf("Ignored %v\n", e)
 		}
 	}
 
@@ -93,15 +91,16 @@ func (kafkaClient *KafkaClient) Run() {
 }
 
 func (kafkaClient *KafkaClient) logConsume(str []byte) {
-	fmt.Println("::: LOG CONSUMED")
-	var msg string
-	json.Unmarshal(str, &msg)
 
-	entity := db.Tb_co_log{}
-	entity.BasDt = time.Now().Format("20060102")
-	entity.Msg = msg
+	//json.Unmarshal(str, &msg)
+	msg := string(str)
+
+	entity := db.Tb_co_log{BasDt: time.Now().Format("20060102"), Msg: msg}
 
 	fmt.Println("::: LOG CONSUMED : ", entity)
 	// DB INSERT
-	db.Create(entity)
+	//db.Create(entity)
+	query := fmt.Sprintf("INSERT INTO TB_CO_LOG_HIST(basDt, id, msg) VALUES('%s', basic.nextval('SQ_CO_LOG_HIST'), '%s')", time.Now().Format("20060102"), msg)
+	fmt.Println("query => ", query)
+	db.RawQuery(query)
 }

@@ -48,13 +48,22 @@ func GetInstance() *gorm.DB {
 
 func Create(data interface{}) {
 
-	result := GetInstance().Create(&data)
-
-	if result.Error != nil {
-		fmt.Println("TbCoLogDao did not insert")
+	switch data.(type) {
+	case Tb_co_log:
+		convData := data.(Tb_co_log)
+		result := database.Select("BasDt", "Id", "Msg").Create(&convData)
+		if result.Error != nil {
+			fmt.Println("did not insert")
+		}
+		fmt.Println("data inserted : ", result.RowsAffected)
+	default:
+		fmt.Println("DB Casting Failed")
 	}
-	fmt.Println("TbCoLogDao data inserted : ", result.RowsAffected)
 
+}
+
+func RawQuery(q string) {
+	database.Exec(q)
 }
 
 func Select() {
